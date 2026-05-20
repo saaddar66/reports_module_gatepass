@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_abi_picking" model="ir.actions.report">
+        <field name="name">Gate Pass</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">reports_module_gatepass.report_abi_picking_template</field>
+        <field name="report_file">reports_module_gatepass.report_abi_picking_template</field>
+        <field name="print_report_name">'Gate Pass - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_abi_picking_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <t t-foreach="docs" t-as="o">
+                    <div class="page" style="font-size: 12px; font-family: sans-serif;">
+
+                        <!-- ===== TITLE HEADER ===== -->
+                        <div class="text-center mb-3">
+                            <h2 style="margin-bottom: 0;">ANA &amp; BATLA INDUSTRIES (Pvt) Ltd</h2>
+                            <h4 style="margin-top: 4px; margin-bottom: 2px;">GATE PASS</h4>
+                            <p style="margin: 0;">3PL Warehouses</p>
+                        </div>
+
+                        <!-- ===== TOP HEADER: LEFT (Ship To / Sold To) + RIGHT (Logistics Grid) ===== -->
+                        <div class="row mb-3" style="border: 1px solid #dee2e6; padding: 8px; border-radius: 4px;">
+
+                            <!-- LEFT COLUMN: Ship To & Sold To -->
+                            <div class="col-6" style="border-right: 1px solid #dee2e6;">
+                                <div class="mb-2">
+                                    <strong style="text-decoration: underline;">Ship To:</strong><br/>
+                                    <t t-if="o.partner_id">
+                                        <div t-field="o.partner_id"
+                                             t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                                    </t>
+                                </div>
+                                <div>
+                                    <strong style="text-decoration: underline;">Sold To:</strong><br/>
+                                    <t t-if="o.x_deliver_to_id">
+                                        <span t-field="o.x_deliver_to_id.name"/><br/>
+                                        <t t-if="o.x_deliver_to_id.ref"><strong>ID:</strong> <span t-field="o.x_deliver_to_id.ref"/><br/></t>
+                                        <t t-if="o.x_deliver_to_id.mobile"><strong>Cell:</strong> <span t-field="o.x_deliver_to_id.mobile"/></t>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT COLUMN: Key-Value logistics grid -->
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless mb-0" style="font-size: 12px;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:45%; padding: 2px 4px;"><strong>Delivery No/Date</strong></td>
+                                            <td style="padding: 2px 4px;">: <span t-field="o.name"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 2px 4px;"><strong>Sale Order No/Date</strong></td>
+                                            <td style="padding: 2px 4px;">: <span t-field="o.origin"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 2px 4px;"><strong>PO No/Date</strong></td>
+                                            <td style="padding: 2px 4px;">: <span t-field="o.po_no"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 2px 4px;"><strong>Storage Location</strong></td>
+                                            <td style="padding: 2px 4px;">: <span t-field="o.storage_location_code"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 2px 4px;"><strong>Driver No</strong></td>
+                                            <td style="padding: 2px 4px;">: <span t-field="o.driver_name"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 2px 4px;"><strong>Truck No</strong></td>
+                                            <td style="padding: 2px 4px;">: <span t-field="o.truck_no"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 2px 4px;"><strong>Delivery Via</strong></td>
+                                            <td style="padding: 2px 4px;">: <span t-field="o.delivery_via"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 2px 4px;"><strong>Builty No</strong></td>
+                                            <td style="padding: 2px 4px;">: <span t-field="o.builty_no"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 2px 4px;"><strong>Seal No</strong></td>
+                                            <td style="padding: 2px 4px;">: <span t-field="o.seal_no"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+
+                        <!-- ===== MAIN ITEMS TABLE ===== -->
+                        <t t-set="s_no" t-value="0"/>
+                        <table class="table table-sm table-bordered mt-3">
+                            <thead>
+                                <tr class="bg-light text-center">
+                                    <th style="width: 4%;">S. No</th>
+                                    <th style="width: 12%;">Material Code</th>
+                                    <th style="width: 22%;">Material Name</th>
+                                    <th style="width: 18%;">Short Text</th>
+                                    <th class="text-end" style="width: 9%;">Delivery Qty</th>
+                                    <th style="width: 7%;">UoM</th>
+                                    <th class="text-end" style="width: 9%;">Qty (PAK)</th>
+                                    <th class="text-end" style="width: 9%;">Qty (CTN)</th>
+                                    <th class="text-end" style="width: 10%;">Qty (PCS)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.move_ids_without_package" t-as="line">
+                                    <t t-set="s_no" t-value="s_no + 1"/>
+                                    <tr>
+                                        <td class="text-center"><t t-esc="s_no"/></td>
+                                        <td><span t-field="line.product_id.default_code"/></td>
+                                        <td><span t-field="line.product_id.name"/></td>
+                                        <td><span t-field="line.short_text"/></td>
+                                        <td class="text-end"><span t-field="line.product_uom_qty"/></td>
+                                        <td class="text-center"><span t-field="line.product_uom.name"/></td>
+                                        <td class="text-end"><span t-field="line.qty_pak" t-options='{"widget": "float", "precision": 2}'/></td>
+                                        <td class="text-end"><span t-field="line.qty_ctn" t-options='{"widget": "float", "precision": 2}'/></td>
+                                        <td class="text-end"><span t-field="line.qty_pcs" t-options='{"widget": "float", "precision": 2}'/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold bg-light">
+                                    <td colspan="4" class="text-start">Total:</td>
+                                    <td class="text-end">
+                                        <t t-esc="sum(o.move_ids_without_package.mapped('product_uom_qty'))"/>
+                                    </td>
+                                    <td></td>
+                                    <td class="text-end">
+                                        <t t-esc="'%.2f' % sum(o.move_ids_without_package.mapped('qty_pak'))"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-esc="'%.2f' % sum(o.move_ids_without_package.mapped('qty_ctn'))"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-esc="'%.2f' % sum(o.move_ids_without_package.mapped('qty_pcs'))"/>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                    </div>
+
+                    <div class="footer">
+                        <!-- ===== 5-COLUMN SIGNATURE BLOCK ===== -->
+                        <div class="row mt-5 pt-5">
+                            <div class="col text-center">
+                                <div style="border-top: 1px solid black; padding-top: 4px;">Prepare By</div>
+                            </div>
+                            <div class="col text-center">
+                                <div style="border-top: 1px solid black; padding-top: 4px;">Store Keeper</div>
+                            </div>
+                            <div class="col text-center">
+                                <div style="border-top: 1px solid black; padding-top: 4px;">Authorized Signature</div>
+                            </div>
+                            <div class="col text-center">
+                                <div style="border-top: 1px solid black; padding-top: 4px;">Received By</div>
+                            </div>
+                            <div class="col text-center">
+                                <div style="border-top: 1px solid black; padding-top: 4px;">Gate Keeper</div>
+                            </div>
+                        </div>
+
+                        <!-- ===== BOTTOM FOOTER ===== -->
+                        <div class="mt-4 pt-3 small border-top d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                User ID: <span t-esc="user.login"/> |
+                                Print Date: <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y %H:%M:%S')"/>
+                            </span>
+                            <span>
+                                <strong>DEL:</strong> <span t-field="o.name"/>
+                            </span>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="view_picking_form_inherit_abi" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.abi</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='other_infos']" position="before">
+                <group string="Logistics Details">
+                    <group>
+                        <field name="driver_name"/>
+                        <field name="truck_no"/>
+                        <field name="delivery_via"/>
+                        <field name="po_no"/>
+                    </group>
+                    <group>
+                        <field name="builty_no"/>
+                        <field name="seal_no"/>
+                        <field name="storage_location_code"/>
+                    </group>
+                </group>
+            </xpath>
+
+            <xpath expr="//page[@name='extra']" position="inside">
+                <group>
+                    <group string="Partner Information">
+                        <field name="x_deliver_to_id" string="Deliver To"/>
+                    </group>
+
+                    <group string="Shipping Information">
+                        <label for="partner_id" string="Shipping Address"/>
+                        <div class="o_address_format">
+                            <field name="partner_id"
+                                   context="{'show_address': 1}"
+                                   options='{"always_reload": True}'
+                                   nolabel="1"/>
+                        </div>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
