@@ -14,15 +14,36 @@
 
     <template id="report_abi_picking_template">
         <t t-call="web.html_container">
-            <t t-call="web.basic_layout">
+            <t t-call="web.external_layout">
+                <style>
+                    /* Hide default company footer contact information */
+                    .o_company_footer { display: none !important; }
+                    
+                    /* Add padding to page to reserve space for footer and prevent overlap */
+                    .page {
+                        padding-bottom: 220px;
+                        position: relative;
+                    }
+                    
+                    /* Style signature footer section */
+                    .abi-signature-footer {
+                        position: absolute;
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
+                        font-size: 12px;
+                        font-family: sans-serif;
+                        margin: 0;
+                        padding: 0;
+                    }
+                </style>
                 <t t-foreach="docs" t-as="o">
                     <div class="page" style="font-size: 12px; font-family: sans-serif;">
 
                         <!-- ===== TITLE HEADER ===== -->
                         <div class="text-center mb-3">
-                            <h2 style="margin-bottom: 0;">ANA &amp; BATLA INDUSTRIES (Pvt) Ltd</h2>
                             <h4 style="margin-top: 4px; margin-bottom: 2px;">GATE PASS</h4>
-                            <p style="margin: 0;">3PL Warehouses</p>
+                            <p style="margin: 0;" t-if="o.picking_type_id and o.picking_type_id.warehouse_id"><span t-field="o.picking_type_id.warehouse_id.name"/></p>
                         </div>
 
                         <!-- ===== TOP HEADER: LEFT (Ship To / Sold To) + RIGHT (Logistics Grid) ===== -->
@@ -147,35 +168,37 @@
 
                     </div>
 
-                    <div class="footer">
+                    <div class="abi-signature-footer">
                         <!-- ===== 5-COLUMN SIGNATURE BLOCK ===== -->
-                        <div class="row mt-5 pt-5">
-                            <div class="col text-center">
-                                <div style="border-top: 1px solid black; padding-top: 4px;">Prepare By</div>
-                            </div>
-                            <div class="col text-center">
-                                <div style="border-top: 1px solid black; padding-top: 4px;">Store Keeper</div>
-                            </div>
-                            <div class="col text-center">
-                                <div style="border-top: 1px solid black; padding-top: 4px;">Authorized Signature</div>
-                            </div>
-                            <div class="col text-center">
-                                <div style="border-top: 1px solid black; padding-top: 4px;">Received By</div>
-                            </div>
-                            <div class="col text-center">
-                                <div style="border-top: 1px solid black; padding-top: 4px;">Gate Keeper</div>
+                        <div style="margin-top: 60px; margin-bottom: 20px;">
+                            <div class="row">
+                                <div class="col text-center">
+                                    <div style="border-top: 1px solid black; padding-top: 4px;">Prepare By</div>
+                                </div>
+                                <div class="col text-center">
+                                    <div style="border-top: 1px solid black; padding-top: 4px;">Store Keeper</div>
+                                </div>
+                                <div class="col text-center">
+                                    <div style="border-top: 1px solid black; padding-top: 4px;">Authorized Signature</div>
+                                </div>
+                                <div class="col text-center">
+                                    <div style="border-top: 1px solid black; padding-top: 4px;">Received By</div>
+                                </div>
+                                <div class="col text-center">
+                                    <div style="border-top: 1px solid black; padding-top: 4px;">Gate Keeper</div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- ===== BOTTOM FOOTER ===== -->
-                        <div class="mt-4 pt-3 small border-top d-flex justify-content-between align-items-center">
-                            <span class="text-muted">
-                                User ID: <span t-esc="user.login"/> |
+                        <!-- ===== FOOTER INFORMATION ===== -->
+                        <div style="border-top: 1px solid #dee2e6; padding-top: 8px; font-size: 11px; display: flex; justify-content: space-between; align-items: center;">
+                            <div class="text-muted">
+                                User ID: <span t-esc="user.login"/> | 
                                 Print Date: <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y %H:%M:%S')"/>
-                            </span>
-                            <span>
+                            </div>
+                            <div>
                                 <strong>DEL:</strong> <span t-field="o.name"/>
-                            </span>
+                            </div>
                         </div>
                     </div>
                 </t>

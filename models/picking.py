@@ -24,15 +24,24 @@ class StockMove(models.Model):
     short_text = fields.Char(string="Short Text")
 
     # Breakdown quantities for the table
-    qty_pak = fields.Float(string="Qty (PAK)", compute="_compute_breakdown_qtys")
-    qty_ctn = fields.Float(string="Qty (CTN)", compute="_compute_breakdown_qtys")
-    qty_pcs = fields.Float(string="Qty (PCS)", compute="_compute_breakdown_qtys")
+    qty_pak = fields.Float(string="Qty (PAK)", compute="_compute_breakdown_qtys", store=True)
+    qty_ctn = fields.Float(string="Qty (CTN)", compute="_compute_breakdown_qtys", store=True)
+    qty_pcs = fields.Float(string="Qty (PCS)", compute="_compute_breakdown_qtys", store=True)
 
-    @api.depends('product_uom_qty', 'product_id')
+    @api.depends('product_uom_qty', 'product_id', 'product_id.packaging_ids')
     def _compute_breakdown_qtys(self):
         for move in self:
-            # In a real scenario, these would calculate based on packaging rules.
-            # Here we initialize them to match your document structure.
-            move.qty_pak = move.product_uom_qty
-            move.qty_ctn = move.product_uom_qty / 8.0  # Example ratio
-            move.qty_pcs = move.product_uom_qty * 50.0  # Example ratio
+            # qty_pcs = raw delivery qty (as-is)
+            move.qty_pcs = move.product_uom_qty
+            
+            # Find packaging for CTN (carton)
+            ctn_packaging = move.product_id.packaging_ids.filtered(
+                lambda p: 'ctn' in p.name.lower() or 'carton' in p.name.lower()
+            )
+            move.qty_ctn = move.product_uom_qty / ctn_packaging.qty if ctn_packaging and ctn_packaging.qty else 0.0
+            
+            # Find packaging for PAK (pack)
+            pak_packaging = move.product_id.packaging_ids.filtered(
+                lambda p: 'pak' in p.name.lower() or 'pack' in p.name.lower()
+            )
+            move.qty_pak = move.product_uom_qty / pak_packaging.qty if pak_packaging and pak_packaging.qty else 0.0
